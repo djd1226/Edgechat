@@ -76,6 +76,8 @@ const {
 const {
   groupMembers,
   messages,
+  loadingOlder,
+  hasMoreMessages,
   loading,
   memberLoading,
   wsStatus,
@@ -543,13 +545,14 @@ onBeforeUnmount(() => {
             <section ref="messagesEl" class="chat-stream">
               <div class="chat-stream__inner">
                 <UiButton
-                  v-if="messages.length"
+                  v-if="messages.length && hasMoreMessages"
                   variant="secondary"
                   size="sm"
                   class="chat-stream__older"
+                  :disabled="loadingOlder"
                   @click="loadOlder"
                 >
-                  加载更早消息
+                  {{ loadingOlder ? '加载中...' : '加载更早消息' }}
                 </UiButton>
 
                 <UiSurface v-if="!activeRoom" tone="muted" class="chat-empty">

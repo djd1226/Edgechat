@@ -7,6 +7,7 @@ const WS_CLOSE_UNAUTHORIZED = 4401;
 const WS_CLOSE_FORBIDDEN = 4403;
 const WS_REASON_UNAUTHORIZED = "session_invalid";
 const WS_REASON_FORBIDDEN = "room_forbidden";
+const MESSAGE_PAGE_SIZE = 30;
 
 export function useChatRoom({
 	activeRoom,
@@ -23,6 +24,8 @@ export function useChatRoom({
 	const groupMembers = ref([]);
 	const messages = ref([]);
 	const loading = ref(false);
+	const loadingOlder = ref(false);
+	const hasMoreMessages = ref(false);
 	const memberLoading = ref(false);
 	const wsStatus = ref("closed");
 	const composerText = ref("");
@@ -104,25 +107,39 @@ export function useChatRoom({
 			return;
 		}
 
-		loading.value = true;
+		if (append) {
+			loadingOlder.value = true;
+		} else {
+			loading.value = true;
+		}
 		error.value = "";
+		const element = messagesEl.value;
+		const previousScrollHeight = append && element ? element.scrollHeight : 0;
 		try {
 			const payload = await api.getMessages(
 				activeRoom.value.kind,
 				activeRoom.value.id,
 				before,
+				MESSAGE_PAGE_SIZE,
 			);
+			hasMoreMessages.value = payload.messages.length === MESSAGE_PAGE_SIZE;
 			messages.value = append
 				? [...payload.messages, ...messages.value]
 				: payload.messages;
 			await nextTick();
-			if (!append) {
+			if (append && element) {
+				element.scrollTop += element.scrollHeight - previousScrollHeight;
+			} else {
 				scrollToBottom();
 			}
 		} catch (currentError) {
 			error.value = currentError.message;
 		} finally {
-			loading.value = false;
+			if (append) {
+				loadingOlder.value = false;
+			} else {
+				loading.value = false;
+			}
 		}
 	}
 
@@ -171,6 +188,7 @@ export function useChatRoom({
 		disconnectSocket();
 		activeRoom.value = null;
 		messages.value = [];
+		hasMoreMessages.value = false;
 		groupMembers.value = [];
 		showGroupEditor.value = false;
 		returnToConversationList();
@@ -388,7 +406,7 @@ export function useChatRoom({
 	}
 
 	async function loadOlder() {
-		if (loading.value) {
+		if (loading.value || loadingOlder.value || !hasMoreMessages.value) {
 			return;
 		}
 
@@ -472,6 +490,7 @@ export function useChatRoom({
 			await api.deleteOwnedChannel(activeRoom.value.id);
 			activeRoom.value = null;
 			messages.value = [];
+			hasMoreMessages.value = false;
 			groupMembers.value = [];
 			returnToConversationList();
 			await refreshSidebar();
@@ -545,6 +564,8 @@ export function useChatRoom({
 	return {
 		groupMembers,
 		messages,
+		loadingOlder,
+		hasMoreMessages,
 		loading,
 		memberLoading,
 		wsStatus,
@@ -585,4 +606,3 @@ export function useChatRoom({
 		saveGroupSettings,
 	};
 }
-

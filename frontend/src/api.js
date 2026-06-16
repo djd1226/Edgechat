@@ -121,10 +121,13 @@ export default {
       body: payload
     });
   },
-  getMessages(kind, roomId, before) {
+  getMessages(kind, roomId, before, limit) {
     const query = new URLSearchParams({ kind, roomId: String(roomId) });
     if (before) {
       query.set('before', String(before));
+    }
+    if (limit) {
+      query.set('limit', String(limit));
     }
     return request(`/messages?${query.toString()}`);
   },
@@ -245,4 +248,3 @@ export default {
     });
   }
 };
-
