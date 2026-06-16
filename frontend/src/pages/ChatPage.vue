@@ -25,6 +25,7 @@ const groupSettingsForm = reactive({
 });
 const session = computed(() => store.session);
 const showAdminEntry = computed(() => Boolean(session.value?.isAdmin));
+const showAccountActions = ref(false);
 
 const {
   isMobileViewport,
@@ -144,11 +145,13 @@ function clearMemberPanelRestoreTimer() {
 }
 
 async function handleOpenConversation(item) {
+  showAccountActions.value = false;
   await openConversationInternal(item);
   openConversationView();
 }
 
 async function handleOpenDmWithUser(user) {
+  showAccountActions.value = false;
   await openDmWithUserInternal(user);
   openConversationView();
 }
@@ -171,12 +174,31 @@ async function bootstrap() {
 }
 
 async function logout() {
+  showAccountActions.value = false;
   await store.logout();
   router.push('/login');
 }
 
 function openAdmin() {
+  showAccountActions.value = false;
   router.push('/admin');
+}
+
+function openSettings() {
+  showAccountActions.value = false;
+  router.push('/settings');
+}
+
+function handleToggleQuickActions() {
+  showAccountActions.value = false;
+  toggleQuickActions();
+}
+
+function toggleAccountActions() {
+  if (!showAccountActions.value && showQuickActions.value) {
+    toggleQuickActions();
+  }
+  showAccountActions.value = !showAccountActions.value;
 }
 
 watch(activeRoomKey, async (roomKey, previousRoomKey) => {
@@ -235,10 +257,32 @@ onBeforeUnmount(() => {
 
           <div class="chat-sidebar__toolbar">
             <UiButton
+              v-if="isMobileViewport"
+              variant="ghost"
+              size="icon"
+              :aria-expanded="showAccountActions ? 'true' : 'false'"
+              aria-label="账号操作"
+              title="账号操作"
+              @click="toggleAccountActions"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M5 12h.01M12 12h.01M19 12h.01"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                />
+              </svg>
+            </UiButton>
+            <UiButton
               variant="ghost"
               size="icon"
               :aria-expanded="showQuickActions ? 'true' : 'false'"
-              @click="toggleQuickActions"
+              aria-label="打开会话操作"
+              title="会话操作"
+              @click="handleToggleQuickActions"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -251,6 +295,19 @@ onBeforeUnmount(() => {
                 />
               </svg>
             </UiButton>
+
+            <Transition name="panel-float">
+              <div
+                v-if="isMobileViewport && showAccountActions"
+                class="chat-sidebar__account-menu chat-sidebar__account-menu--topbar"
+              >
+                <UiButton variant="ghost" size="sm" @click="openSettings">设置</UiButton>
+                <UiButton v-if="showAdminEntry" variant="ghost" size="sm" @click="openAdmin">
+                  后台
+                </UiButton>
+                <UiButton variant="ghost" size="sm" @click="logout">退出</UiButton>
+              </div>
+            </Transition>
           </div>
         </div>
 
@@ -347,12 +404,36 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="chat-sidebar__footer chat-sidebar__footer--simple">
-          <UiButton variant="ghost" size="sm" @click="router.push('/settings')">设置</UiButton>
-          <UiButton v-if="showAdminEntry" variant="ghost" size="sm" @click="openAdmin">
-            后台
+        <div class="chat-sidebar__footer chat-sidebar__footer--simple chat-sidebar__footer--collapsed">
+          <UiButton
+            variant="ghost"
+            size="icon"
+            :aria-expanded="showAccountActions ? 'true' : 'false'"
+            aria-label="账号操作"
+            title="账号操作"
+            @click="toggleAccountActions"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 12h.01M12 12h.01M19 12h.01"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="3"
+              />
+            </svg>
           </UiButton>
-          <UiButton variant="ghost" size="sm" @click="logout">退出</UiButton>
+
+          <Transition name="panel-float">
+            <div v-if="!isMobileViewport && showAccountActions" class="chat-sidebar__account-menu">
+              <UiButton variant="ghost" size="sm" @click="openSettings">设置</UiButton>
+              <UiButton v-if="showAdminEntry" variant="ghost" size="sm" @click="openAdmin">
+                后台
+              </UiButton>
+              <UiButton variant="ghost" size="sm" @click="logout">退出</UiButton>
+            </div>
+          </Transition>
         </div>
       </aside>
 
@@ -362,22 +443,33 @@ onBeforeUnmount(() => {
             <UiButton
               v-if="isMobileViewport"
               variant="ghost"
-              size="sm"
+              size="icon"
               class="chat-stage__back-btn"
+              aria-label="返回会话列表"
+              title="返回会话列表"
               @click="returnToConversationList"
             >
-              返回列表
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M15 6 9 12l6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                />
+              </svg>
             </UiButton>
             <h1>{{ roomLabel(activeRoom) }}</h1>
             <p>{{ activeRoomSubtitle }}</p>
           </div>
           <div class="chat-stage__status">
-            <UiBadge :variant="wsStatus === 'open' ? 'success' : 'secondary'">
-              {{ wsStatus === 'open' ? '实时已连接' : '连接中' }}
-            </UiBadge>
-            <UiButton v-if="showAdminEntry" variant="secondary" size="sm" @click="openAdmin">
-              后台
-            </UiButton>
+            <span
+              class="chat-stage__connection-dot"
+              :class="{ 'chat-stage__connection-dot--online': wsStatus === 'open' }"
+              :title="wsStatus === 'open' ? '实时已连接' : '连接中'"
+              aria-hidden="true"
+            />
             <button
               v-if="hasManageLayer"
               type="button"
@@ -386,6 +478,7 @@ onBeforeUnmount(() => {
               :aria-expanded="showMemberPanel ? 'true' : 'false'"
               :aria-hidden="showMemberPanel ? 'true' : 'false'"
               :tabindex="showMemberPanel ? -1 : 0"
+              title="群成员与设置"
               @click="toggleMemberPanel"
             >
               <svg
@@ -397,9 +490,14 @@ onBeforeUnmount(() => {
                 stroke-width="2"
                 aria-hidden="true"
               >
-                <path d="M6 9l6 6 6-6"/>
+                <path
+                  d="M5 12h.01M12 12h.01M19 12h.01"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                />
               </svg>
-              展开成员面板
+              <span class="sr-only">展开群资料</span>
             </button>
           </div>
         </header>
@@ -447,22 +545,31 @@ onBeforeUnmount(() => {
                     size="sm"
                     class="chat-bubble-row__avatar"
                   />
-                  <div class="chat-bubble" :class="bubbleClass(message, index)">
+                  <div class="chat-bubble-stack">
                     <div class="chat-bubble__meta">
                       <strong>{{ isOwnMessage(message) ? '我' : message.sender.displayName }}</strong>
                       <span>{{ formatTime(message.createdAt) }}</span>
                     </div>
-                    <p v-if="message.content">{{ message.content }}</p>
-                    <a
-                      v-if="message.attachment"
-                      :href="message.attachment.url"
-                      target="_blank"
-                      rel="noreferrer"
-                      class="chat-bubble__attachment"
-                    >
-                      {{ message.attachment.name }}
-                    </a>
+                    <div class="chat-bubble" :class="bubbleClass(message, index)">
+                      <p v-if="message.content">{{ message.content }}</p>
+                      <a
+                        v-if="message.attachment"
+                        :href="message.attachment.url"
+                        target="_blank"
+                        rel="noreferrer"
+                        class="chat-bubble__attachment"
+                      >
+                        {{ message.attachment.name }}
+                      </a>
+                    </div>
                   </div>
+                  <UiAvatar
+                    v-if="isOwnMessage(message)"
+                    :src="session?.avatarUrl"
+                    :fallback="session?.displayName || session?.username || '我'"
+                    size="sm"
+                    class="chat-bubble-row__avatar chat-bubble-row__avatar--own"
+                  />
                 </article>
               </div>
             </section>
