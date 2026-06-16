@@ -4,6 +4,8 @@ import router from './router.js';
 import store from './store.js';
 import './styles.css';
 import './styles-liquid.css';
+import './styles/chat-qq.css';
+import './styles/chat-mobile-final.css';
 import { initLiquidGlass } from './liquid-glass.js';
 
 // 应用自定义背景

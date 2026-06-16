@@ -26,6 +26,7 @@ const groupSettingsForm = reactive({
 const session = computed(() => store.session);
 const showAdminEntry = computed(() => Boolean(session.value?.isAdmin));
 const showAccountActions = ref(false);
+const showMobileHeaderMenu = ref(false);
 
 const {
   isMobileViewport,
@@ -144,14 +145,19 @@ function clearMemberPanelRestoreTimer() {
   }
 }
 
-async function handleOpenConversation(item) {
+function closeHeaderMenus() {
   showAccountActions.value = false;
+  showMobileHeaderMenu.value = false;
+}
+
+async function handleOpenConversation(item) {
+  closeHeaderMenus();
   await openConversationInternal(item);
   openConversationView();
 }
 
 async function handleOpenDmWithUser(user) {
-  showAccountActions.value = false;
+  closeHeaderMenus();
   await openDmWithUserInternal(user);
   openConversationView();
 }
@@ -174,23 +180,23 @@ async function bootstrap() {
 }
 
 async function logout() {
-  showAccountActions.value = false;
+  closeHeaderMenus();
   await store.logout();
   router.push('/login');
 }
 
 function openAdmin() {
-  showAccountActions.value = false;
+  closeHeaderMenus();
   router.push('/admin');
 }
 
 function openSettings() {
-  showAccountActions.value = false;
+  closeHeaderMenus();
   router.push('/settings');
 }
 
 function handleToggleQuickActions() {
-  showAccountActions.value = false;
+  closeHeaderMenus();
   toggleQuickActions();
 }
 
@@ -201,8 +207,19 @@ function toggleAccountActions() {
   showAccountActions.value = !showAccountActions.value;
 }
 
+function openMobileGroupPanel() {
+  showMobileHeaderMenu.value = false;
+  toggleMemberPanel();
+}
+
+function toggleMobileHeaderMenu() {
+  showAccountActions.value = false;
+  showMobileHeaderMenu.value = !showMobileHeaderMenu.value;
+}
+
 watch(activeRoomKey, async (roomKey, previousRoomKey) => {
   clearMemberPanelRestoreTimer();
+  showMobileHeaderMenu.value = false;
   if (!roomKey) {
     return;
   }
@@ -471,15 +488,15 @@ onBeforeUnmount(() => {
               aria-hidden="true"
             />
             <button
-              v-if="hasManageLayer"
+              v-if="hasManageLayer || isMobileViewport"
               type="button"
               class="expand-member-btn expand-member-btn--header"
               :class="{ 'expand-member-btn--hidden': showMemberPanel }"
-              :aria-expanded="showMemberPanel ? 'true' : 'false'"
-              :aria-hidden="showMemberPanel ? 'true' : 'false'"
-              :tabindex="showMemberPanel ? -1 : 0"
-              title="群成员与设置"
-              @click="toggleMemberPanel"
+              :aria-expanded="showMobileHeaderMenu || showMemberPanel ? 'true' : 'false'"
+              :aria-hidden="showMemberPanel && !isMobileViewport ? 'true' : 'false'"
+              :tabindex="showMemberPanel && !isMobileViewport ? -1 : 0"
+              title="更多"
+              @click="isMobileViewport ? toggleMobileHeaderMenu() : toggleMemberPanel()"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -497,8 +514,21 @@ onBeforeUnmount(() => {
                   stroke-width="3"
                 />
               </svg>
-              <span class="sr-only">展开群资料</span>
+              <span class="sr-only">更多操作</span>
             </button>
+
+            <Transition name="panel-float">
+              <div v-if="isMobileViewport && showMobileHeaderMenu" class="chat-stage__mobile-menu">
+                <UiButton v-if="hasManageLayer" variant="ghost" size="sm" @click="openMobileGroupPanel">
+                  群资料
+                </UiButton>
+                <UiButton variant="ghost" size="sm" @click="openSettings">设置</UiButton>
+                <UiButton v-if="showAdminEntry" variant="ghost" size="sm" @click="openAdmin">
+                  后台
+                </UiButton>
+                <UiButton variant="ghost" size="sm" @click="logout">退出</UiButton>
+              </div>
+            </Transition>
           </div>
         </header>
 
