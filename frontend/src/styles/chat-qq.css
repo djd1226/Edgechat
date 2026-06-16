@@ -525,14 +525,14 @@
 
   .chat-shell {
     padding: 0;
-    height: 100dvh;
-    min-height: 100dvh;
+    height: 100svh;
+    min-height: 100svh;
     overflow: hidden;
   }
 
   .chat-app {
-    height: 100dvh;
-    min-height: 100dvh;
+    height: 100svh;
+    min-height: 100svh;
     border-radius: 0;
     grid-template-columns: minmax(0, 1fr);
   }
@@ -540,7 +540,7 @@
   .chat-sidebar {
     width: 100%;
     min-width: 0;
-    height: 100dvh;
+    height: 100svh;
     min-height: 0;
   }
 
@@ -586,7 +586,7 @@
   }
 
   .chat-sidebar__body {
-    height: calc(100dvh - 54px);
+    height: calc(100svh - 54px);
   }
 
   .chat-list-item {
@@ -615,43 +615,44 @@
   }
 
   .chat-stage {
-    height: 100dvh;
+    height: 100svh;
     min-height: 0;
-    grid-template-rows: 50px minmax(0, 1fr);
+    grid-template-rows: 48px minmax(0, 1fr);
   }
 
   .chat-stage--mobile {
-    height: 100dvh;
+    height: 100svh;
     min-height: 0;
   }
 
   .chat-stage__header {
-    min-height: 50px;
-    padding: 0 8px;
-    flex-direction: row;
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
     align-items: center;
-    gap: 6px;
+    gap: 0;
+    padding: 0 8px;
     box-shadow: 0 1px 0 rgba(18, 35, 56, 0.06);
   }
 
   .chat-stage__header-main {
-    flex: 1 1 auto;
+    grid-column: 1;
     min-width: 0;
-    grid-template-columns: 36px minmax(0, 1fr);
-    grid-template-rows: 1fr;
+    display: flex;
     align-items: center;
-    gap: 0 4px;
+    justify-content: flex-start;
+    gap: 0;
   }
 
   .chat-stage__back-btn {
-    width: 34px;
-    min-width: 34px;
-    min-height: 34px;
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    color: #1f2937;
   }
 
   .chat-stage__header h1 {
-    font-size: 1.02rem;
-    line-height: 1.2;
+    display: none;
   }
 
   .chat-stage__header p {
@@ -659,8 +660,10 @@
   }
 
   .chat-stage__status {
+    grid-column: 3;
     display: flex;
     flex: 0 0 auto;
+    align-items: center;
     justify-content: flex-end;
     gap: 0;
   }
@@ -670,10 +673,11 @@
   }
 
   .expand-member-btn--header {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
     padding: 0;
+    color: #1f2937;
   }
 
   .expand-member-btn--hidden {
@@ -688,7 +692,8 @@
   }
 
   .chat-stream {
-    padding: 12px 9px 8px;
+    padding: 14px 10px 12px;
+    background: #f2f3f5;
   }
 
   .chat-stream__inner {
@@ -701,7 +706,7 @@
   }
 
   .chat-bubble-row {
-    gap: 6px;
+    gap: 7px;
   }
 
   .chat-bubble-row__avatar {
@@ -712,13 +717,14 @@
   }
 
   .chat-bubble-stack {
-    max-width: calc(100% - 44px);
+    max-width: calc(100% - 46px);
   }
 
   .chat-bubble {
-    padding: 8px 10px;
+    padding: 8px 11px;
     font-size: 0.94rem;
     border-radius: 4px 15px 15px;
+    line-height: 1.55;
   }
 
   .chat-bubble-row .chat-bubble__meta {
@@ -742,20 +748,21 @@
   }
 
   .chat-composer-shell {
-    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    padding: 8px 9px calc(22px + env(safe-area-inset-bottom));
+    background: #ffffff;
     box-shadow: 0 -1px 0 rgba(18, 35, 56, 0.06);
   }
 
   .chat-composer__field {
-    grid-template-columns: minmax(0, 1fr) 40px;
-    min-height: 40px;
-    gap: 6px;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    min-height: 42px;
+    gap: 8px;
   }
 
   .chat-composer__field .ui-button {
-    width: 40px;
-    min-width: 40px;
-    min-height: 36px;
+    width: 42px;
+    min-width: 42px;
+    min-height: 40px;
   }
 
   .chat-composer__field .ui-button--ghost {
@@ -763,17 +770,18 @@
   }
 
   .chat-composer__field .ui-button--default {
-    width: 40px;
-    min-width: 40px;
+    width: 42px;
+    min-width: 42px;
   }
 
   .chat-composer__input.ui-textarea {
-    min-height: 36px;
-    height: 36px;
+    min-height: 40px;
+    height: 40px;
     max-height: 104px;
-    padding: 8px 11px;
-    border-radius: 16px;
+    padding: 9px 13px;
+    border-radius: 18px;
     font-size: 0.94rem;
+    line-height: 1.45;
   }
 
   .chat-stage__member-pane {
